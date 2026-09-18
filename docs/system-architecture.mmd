@@ -1,0 +1,9 @@
+flowchart LR
+    User[Terminal User] --> Main[Main.java\nInteraction and Application Flow]
+    Main --> Process[Process.java\nProcess Data and Metrics]
+    Main --> Scheduler[Scheduler.java\nScheduling Simulation]
+    Main --> Analysis[Analysis.java\nAnalysis and Reporting]
+    Scheduler --> Process
+    Scheduler --> Analysis
+    Analysis --> Process
+    Main --> Files[CSV and Text Files]

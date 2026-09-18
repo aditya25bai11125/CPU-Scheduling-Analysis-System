@@ -1,0 +1,26 @@
+flowchart TD
+    Start([Start]) --> Choose{Choose workload source}
+    Choose --> Manual[Enter process manually]
+    Choose --> Sample[Load sample CSV]
+    Choose --> Import[Import CSV]
+    Choose --> Generate[Generate workload]
+    Manual --> Validate[Validate workload]
+    Sample --> Validate
+    Import --> Validate
+    Generate --> Validate
+    Validate --> Valid{Valid?}
+    Valid -- No --> Error[Display validation error]
+    Error --> Choose
+    Valid -- Yes --> Inspect[View workload statistics]
+    Inspect --> Action{Next action}
+    Action --> Simulate[Select scheduling algorithm]
+    Action --> Compare[Compare algorithms]
+    Simulate --> Run[Scheduler runs simulation]
+    Compare --> RunComparison[Scheduler runs each algorithm]
+    Run --> Report[Analysis formats report]
+    RunComparison --> ComparisonReport[Analysis formats comparison]
+    Report --> Export{Export result?}
+    ComparisonReport --> Export
+    Export -- Yes --> File[Write text report]
+    Export -- No --> End([End or return to menu])
+    File --> End

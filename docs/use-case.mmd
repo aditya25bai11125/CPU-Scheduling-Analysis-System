@@ -1,0 +1,49 @@
+flowchart LR
+    User((Terminal User))
+
+    subgraph WB[Workload Builder]
+        Add[Add process manually]
+        Load[Load sample workload]
+        Import[Import CSV workload]
+        ExportWorkload[Export workload CSV]
+        Generate[Generate workload]
+        Statistics[View workload statistics]
+    end
+
+    subgraph SS[Scheduling Simulation]
+        Select[Select algorithm]
+        FCFS[Run FCFS]
+        SJF[Run SJF]
+        SRTF[Run SRTF]
+        Priority[Run Priority Scheduling]
+        RR[Run Round Robin with quantum]
+        Gantt[View Gantt chart and metrics]
+    end
+
+    subgraph AR[Analysis and Reporting]
+        Compare[Compare algorithms]
+        LongWait[Detect long waits]
+        ExportReport[Export text result]
+    end
+
+    User --> Add
+    User --> Load
+    User --> Import
+    User --> ExportWorkload
+    User --> Generate
+    User --> Statistics
+    User --> Select
+    Select --> FCFS
+    Select --> SJF
+    Select --> SRTF
+    Select --> Priority
+    Select --> RR
+    FCFS --> Gantt
+    SJF --> Gantt
+    SRTF --> Gantt
+    Priority --> Gantt
+    RR --> Gantt
+    User --> Compare
+    Gantt --> LongWait
+    Gantt --> ExportReport
+    Compare --> ExportReport

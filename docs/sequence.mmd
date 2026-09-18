@@ -1,0 +1,18 @@
+sequenceDiagram
+    actor User
+    participant Main as Main.java
+    participant Scheduler as Scheduler.java
+    participant Process as Process.java
+    participant Analysis as Analysis.java
+
+    User->>Main: Select workload and algorithm
+    Main->>Main: Validate input and workload
+    Main->>Scheduler: schedule(workload, algorithm, quantum)
+    Scheduler->>Process: Copy each process
+    Scheduler->>Scheduler: Run selected scheduling algorithm
+    Scheduler->>Process: Set start and completion state
+    Scheduler-->>Main: Results, Gantt chart, utilization, throughput
+    Main->>Analysis: formatReport(results, timeline, summaries)
+    Analysis->>Process: Read per-process metrics
+    Analysis-->>Main: Formatted text report
+    Main-->>User: Display report and optionally export text

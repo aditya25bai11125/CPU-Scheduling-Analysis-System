@@ -1,0 +1,59 @@
+classDiagram
+    class Main {
+        -Scanner INPUT
+        -List~Process~ workload
+        +main(String[] args)
+        -runInteractiveMenu()
+        -runCommandLine(String[] args)
+        -runSimulation(String algorithm, int quantum, String exportFile)
+        -runComparison(int quantum, String exportFile)
+    }
+
+    class Process {
+        -String id
+        -int arrivalTime
+        -int burstTime
+        -int priority
+        -int remainingTime
+        -int startTime
+        -int completionTime
+        +Process(String id, int arrivalTime, int burstTime, int priority)
+        +Process(Process other)
+        +getTurnaroundTime() int
+        +getWaitingTime() int
+        +getResponseTime() int
+        +resetSimulation()
+        +copy() Process
+    }
+
+    class Scheduler {
+        -List~String~ ganttChart
+        -double cpuUtilization
+        -double throughput
+        +schedule(List~Process~ workload, String algorithm, int quantum) List~Process~
+        +getGanttChart() List~String~
+        +getCpuUtilization() double
+        +getThroughput() double
+        -runFcfs(List~Process~ processes)
+        -runShortestJobFirst(List~Process~ processes)
+        -runShortestRemainingTimeFirst(List~Process~ processes)
+        -runPriority(List~Process~ processes)
+        -runRoundRobin(List~Process~ processes, int quantum)
+    }
+
+    class Analysis {
+        +workloadStatistics(List~Process~ workload) String
+        +compareAlgorithms(List~Process~ workload, Scheduler scheduler, int quantum) String
+        +formatReport(List~Process~ processes, String algorithm, List~String~ ganttChart, double cpuUtilization, double throughput) String
+        +averageWaitingTime(List~Process~ processes) double
+        +averageTurnaroundTime(List~Process~ processes) double
+        +averageResponseTime(List~Process~ processes) double
+        +findLongWaits(List~Process~ processes, double averageWaitingTime) List~Process~
+    }
+
+    Main --> Process : creates and loads
+    Main --> Scheduler : requests simulation
+    Main --> Analysis : requests reports
+    Scheduler --> Process : copies and updates
+    Analysis --> Process : reads metrics
+    Analysis --> Scheduler : compares algorithms

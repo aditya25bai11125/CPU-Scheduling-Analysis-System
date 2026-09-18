@@ -1,6 +1,7 @@
 package com.vit.cpusimulator;
 
 public class Process {
+
     private final String id;
     private final int arrivalTime;
     private final int burstTime;
@@ -16,25 +17,32 @@ public class Process {
         }
 
         String normalizedId = id.trim();
+
         if ("IDLE".equalsIgnoreCase(normalizedId)) {
             throw new IllegalArgumentException(
                     "Process ID 'IDLE' is reserved for CPU idle periods.");
         }
 
         if (arrivalTime < 0) {
-            throw new IllegalArgumentException("Arrival time cannot be negative.");
+            throw new IllegalArgumentException(
+                    "Arrival time cannot be negative.");
         }
+
         if (burstTime <= 0) {
-            throw new IllegalArgumentException("Burst time must be greater than zero.");
+            throw new IllegalArgumentException(
+                    "Burst time must be greater than zero.");
         }
+
         if (priority < 0) {
-            throw new IllegalArgumentException("Priority cannot be negative.");
+            throw new IllegalArgumentException(
+                    "Priority cannot be negative.");
         }
 
         this.id = normalizedId;
         this.arrivalTime = arrivalTime;
         this.burstTime = burstTime;
         this.priority = priority;
+
         resetSimulation();
     }
 
@@ -47,6 +55,7 @@ public class Process {
         this.arrivalTime = other.arrivalTime;
         this.burstTime = other.burstTime;
         this.priority = other.priority;
+
         resetSimulation();
     }
 
@@ -76,22 +85,28 @@ public class Process {
 
     public void setRemainingTime(int remainingTime) {
         if (remainingTime < 0) {
-            throw new IllegalArgumentException("Remaining time cannot be negative.");
+            throw new IllegalArgumentException(
+                    "Remaining time cannot be negative.");
         }
+
         this.remainingTime = remainingTime;
     }
 
     public void reduceRemainingTime(int amount) {
         if (amount < 0 || amount > remainingTime) {
-            throw new IllegalArgumentException("Invalid remaining time reduction.");
+            throw new IllegalArgumentException(
+                    "Invalid remaining time reduction.");
         }
+
         remainingTime -= amount;
     }
 
     public void decrementRemainingTime() {
         if (remainingTime <= 0) {
-            throw new IllegalStateException("The process has no remaining time.");
+            throw new IllegalStateException(
+                    "The process has no remaining time.");
         }
+
         remainingTime--;
     }
 
@@ -101,8 +116,10 @@ public class Process {
 
     public void setStartTime(int startTime) {
         if (startTime < 0) {
-            throw new IllegalArgumentException("Start time cannot be negative.");
+            throw new IllegalArgumentException(
+                    "Start time cannot be negative.");
         }
+
         this.startTime = startTime;
     }
 
@@ -112,8 +129,10 @@ public class Process {
 
     public void setCompletionTime(int completionTime) {
         if (completionTime < 0) {
-            throw new IllegalArgumentException("Completion time cannot be negative.");
+            throw new IllegalArgumentException(
+                    "Completion time cannot be negative.");
         }
+
         this.completionTime = completionTime;
     }
 
@@ -129,6 +148,7 @@ public class Process {
         if (completionTime < 0) {
             return 0;
         }
+
         return completionTime - arrivalTime;
     }
 
@@ -136,6 +156,7 @@ public class Process {
         if (completionTime < 0) {
             return 0;
         }
+
         return getTurnaroundTime() - burstTime;
     }
 
@@ -143,6 +164,7 @@ public class Process {
         if (startTime < 0) {
             return 0;
         }
+
         return startTime - arrivalTime;
     }
 

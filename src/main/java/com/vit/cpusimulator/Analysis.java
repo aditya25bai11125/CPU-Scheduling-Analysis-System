@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Locale;
 
 public class Analysis {
+
     private static final int LONG_WAIT_MINIMUM = 10;
     private static final String PRIORITY_SEMANTICS =
             "Priority semantics: smaller numeric values indicate higher scheduling priority.";
@@ -15,11 +16,12 @@ public class Analysis {
 
         if (workload.isEmpty()) {
             return "Workload statistics\n"
+                    + "-------------------\n"
                     + "No processes in the workload.\n"
                     + PRIORITY_SEMANTICS;
         }
 
-        long totalBurst = 0L;
+        long totalBurst = 0;
         int earliestArrival = Integer.MAX_VALUE;
         int latestArrival = Integer.MIN_VALUE;
         int lowestPriority = Integer.MAX_VALUE;
@@ -33,79 +35,79 @@ public class Analysis {
             highestPriority = Math.max(highestPriority, process.getPriority());
         }
 
-        StringBuilder result = new StringBuilder();
-        result.append("Workload statistics\n");
-        result.append("-------------------\n");
-        result.append("Process count: ").append(workload.size()).append('\n');
-        result.append("Total burst time: ").append(totalBurst).append('\n');
-        result.append("Arrival time range: ")
-                .append(earliestArrival)
-                .append(" to ")
-                .append(latestArrival)
-                .append('\n');
-        result.append("Priority range: ")
-                .append(lowestPriority)
-                .append(" to ")
-                .append(highestPriority)
-                .append('\n');
-        result.append(PRIORITY_SEMANTICS);
-
-        return result.toString();
+        return "Workload statistics\n"
+                + "-------------------\n"
+                + "Process count: " + workload.size() + "\n"
+                + "Total burst time: " + totalBurst + "\n"
+                + "Arrival time range: " + earliestArrival + " to " + latestArrival + "\n"
+                + "Priority range: " + lowestPriority + " to " + highestPriority + "\n"
+                + PRIORITY_SEMANTICS;
     }
 
     public static String compareAlgorithms(
             List<Process> workload, Scheduler scheduler, int quantum) {
+
         validateWorkload(workload);
 
         if (scheduler == null) {
             throw new IllegalArgumentException("A scheduler is required.");
         }
+
         if (workload.isEmpty()) {
             throw new IllegalArgumentException("The workload is empty.");
         }
+
         if (quantum <= 0) {
             throw new IllegalArgumentException(
                     "Round Robin quantum must be greater than zero.");
         }
 
         String[] algorithms = {"FCFS", "SJF", "SRTF", "PRIORITY", "RR"};
-        StringBuilder result = new StringBuilder();
 
+        StringBuilder result = new StringBuilder();
         result.append("Algorithm comparison\n");
         result.append("--------------------\n");
         result.append(PRIORITY_SEMANTICS).append('\n');
         result.append("Round Robin quantum: ").append(quantum).append('\n');
+
         result.append(String.format(
                 Locale.ROOT,
-                "%-12s %12s %12s %12s %12s %14s %12s%n",
+                "%-12s %12s %14s %12s %11s %14s %12s%n",
                 "Algorithm",
                 "Avg Waiting",
                 "Avg Turnaround",
                 "Avg Response",
                 "CPU Util.",
                 "Throughput",
-                "Long Waits"));
+                "Long Waits"
+        ));
 
         for (String algorithm : algorithms) {
-            List<Process> completed = scheduler.schedule(workload, algorithm, quantum);
+            List<Process> completed =
+                    scheduler.schedule(workload, algorithm, quantum);
+
             double averageWaiting = averageWaitingTime(completed);
             double averageTurnaround = averageTurnaroundTime(completed);
             double averageResponse = averageResponseTime(completed);
-            int longWaitCount = findLongWaits(completed, averageWaiting).size();
-            String displayedAlgorithm = "RR".equals(algorithm)
+
+            int longWaitCount =
+                    findLongWaits(completed, averageWaiting).size();
+
+            String displayName = algorithm.equals("RR")
                     ? "RR (q=" + quantum + ")"
                     : algorithm;
 
             result.append(String.format(
                     Locale.ROOT,
-                    "%-12s %12.2f %12.2f %12.2f %11.2f%% %14.4f %12d%n",
-                    displayedAlgorithm,
+                    "%-12s %12.2f %14.2f %12.2f %10.2f%% %14.4f %12d%n",
+                    displayName,
                     averageWaiting,
                     averageTurnaround,
                     averageResponse,
                     scheduler.getCpuUtilization(),
                     scheduler.getThroughput(),
-                    longWaitCount));
+                    longWaitCount
+            ));
         }
 
         result.append('\n');
@@ -122,6 +124,7 @@ public class Analysis {
             List<String> ganttChart,
             double cpuUtilization,
             double throughput) {
+
         validateWorkload(processes);
 
         if (algorithm == null || algorithm.isBlank()) {
@@ -131,18 +134,22 @@ public class Analysis {
         double averageWaiting = averageWaitingTime(processes);
         double averageTurnaround = averageTurnaroundTime(processes);
         double averageResponse = averageResponseTime(processes);
-        List<Process> longWaits = findLongWaits(processes, averageWaiting);
+
+        List<Process> longWaits =
+                findLongWaits(processes, averageWaiting);
 
         StringBuilder report = new StringBuilder();
+
         report.append("CPU Scheduling Analysis Report\n");
         report.append("==============================\n");
         report.append("Algorithm: ").append(algorithm).append('\n');
         report.append(PRIORITY_SEMANTICS).append('\n');
         report.append("Process count: ").append(processes.size()).append('\n');
-        report.append('\n');
 
+        report.append('\n');
         report.append("Gantt chart\n");
         report.append("-----------\n");
+
         if (ganttChart == null || ganttChart.isEmpty()) {
             report.append("No timeline available.\n");
         } else {
@@ -154,6 +161,7 @@ public class Analysis {
         report.append('\n');
         report.append("Per-process results\n");
         report.append("-------------------\n");
+
         report.append(String.format(
                 Locale.ROOT,
                 "%-10s %8s %8s %8s %10s %10s %10s %10s%n",
@@ -164,12 +172,16 @@ public class Analysis {
                 "Completion",
                 "Turnaround",
                 "Waiting",
-                "Response"));
+                "Response"
+        ));
 
-        List<Process> orderedProcesses = new ArrayList<>(processes);
-        orderedProcesses.sort(Comparator
-                .comparingInt(Process::getArrivalTime)
-                .thenComparing(Process::getId));
+        List<Process> orderedProcesses =
+                new ArrayList<>(processes);
+
+        orderedProcesses.sort(
+                Comparator.comparingInt(Process::getArrivalTime)
+                        .thenComparing(Process::getId)
+        );
 
         for (Process process : orderedProcesses) {
             report.append(String.format(
@@ -182,32 +194,43 @@ public class Analysis {
                     process.getCompletionTime(),
                     process.getTurnaroundTime(),
                     process.getWaitingTime(),
-                    process.getResponseTime()));
+                    process.getResponseTime()
+            ));
         }
 
         report.append('\n');
         report.append("Aggregate results\n");
         report.append("-----------------\n");
+
         report.append(String.format(
                 Locale.ROOT,
                 "Average waiting time: %.2f%n",
-                averageWaiting));
+                averageWaiting
+        ));
+
         report.append(String.format(
                 Locale.ROOT,
                 "Average turnaround time: %.2f%n",
-                averageTurnaround));
+                averageTurnaround
+        ));
+
         report.append(String.format(
                 Locale.ROOT,
                 "Average response time: %.2f%n",
-                averageResponse));
+                averageResponse
+        ));
+
         report.append(String.format(
                 Locale.ROOT,
                 "CPU utilization: %.2f%%%n",
-                cpuUtilization));
+                cpuUtilization
+        ));
+
         report.append(String.format(
                 Locale.ROOT,
                 "Throughput: %.4f process(es) per time unit%n",
-                throughput));
+                throughput
+        ));
 
         report.append('\n');
         report.append("Long-wait detection\n");
@@ -220,16 +243,20 @@ public class Analysis {
             report.append("No long waits detected.\n");
         } else {
             report.append("Long-wait processes: ");
-            for (int index = 0; index < longWaits.size(); index++) {
-                if (index > 0) {
+
+            for (int i = 0; i < longWaits.size(); i++) {
+                if (i > 0) {
                     report.append(", ");
                 }
-                Process process = longWaits.get(index);
+
+                Process process = longWaits.get(i);
+
                 report.append(process.getId())
                         .append(" (")
                         .append(process.getWaitingTime())
                         .append(" time units)");
             }
+
             report.append('\n');
         }
 
@@ -252,10 +279,13 @@ public class Analysis {
     }
 
     public static List<Process> findLongWaits(
-            List<Process> processes, double averageWaitingTime) {
+            List<Process> processes,
+            double averageWaitingTime) {
+
         validateWorkload(processes);
 
         List<Process> longWaits = new ArrayList<>();
+
         for (Process process : processes) {
             int waitingTime = process.getWaitingTime();
 
@@ -269,26 +299,39 @@ public class Analysis {
             }
         }
 
-        longWaits.sort(Comparator
-                .comparingInt(Process::getWaitingTime)
-                .reversed()
-                .thenComparing(Process::getId));
+        longWaits.sort(
+                Comparator.comparingInt(Process::getWaitingTime)
+                        .reversed()
+                        .thenComparing(Process::getId)
+        );
+
         return longWaits;
     }
 
-    private static double averageMetric(List<Process> processes, String metric) {
+    private static double averageMetric(
+            List<Process> processes,
+            String metric) {
+
         if (processes.isEmpty()) {
             return 0.0;
         }
 
-        long total = 0L;
+        long total = 0;
+
         for (Process process : processes) {
-            if ("waiting".equals(metric)) {
-                total += process.getWaitingTime();
-            } else if ("turnaround".equals(metric)) {
-                total += process.getTurnaroundTime();
-            } else if ("response".equals(metric)) {
-                total += process.getResponseTime();
+            switch (metric) {
+                case "waiting" ->
+                        total += process.getWaitingTime();
+
+                case "turnaround" ->
+                        total += process.getTurnaroundTime();
+
+                case "response" ->
+                        total += process.getResponseTime();
+
+                default ->
+                        throw new IllegalArgumentException(
+                                "Unknown metric: " + metric);
             }
         }
 
@@ -297,12 +340,14 @@ public class Analysis {
 
     private static void validateWorkload(List<Process> workload) {
         if (workload == null) {
-            throw new IllegalArgumentException("The workload cannot be null.");
+            throw new IllegalArgumentException(
+                    "The workload cannot be null.");
         }
 
         for (Process process : workload) {
             if (process == null) {
-                throw new IllegalArgumentException("The workload contains a null process.");
+                throw new IllegalArgumentException(
+                        "The workload contains a null process.");
             }
         }
     }

@@ -10,7 +10,9 @@ import java.util.Locale;
 import java.util.Set;
 
 public class Scheduler {
+
     private final List<String> ganttChart = new ArrayList<>();
+
     private double cpuUtilization;
     private double throughput;
     private int busyTime;
@@ -20,22 +22,24 @@ public class Scheduler {
         if (workload == null || workload.isEmpty()) {
             throw new IllegalArgumentException("The workload is empty.");
         }
+
         if (algorithm == null || algorithm.isBlank()) {
             throw new IllegalArgumentException("An algorithm is required.");
         }
 
         String selectedAlgorithm = normalizeAlgorithm(algorithm);
 
-        switch (selectedAlgorithm) {
-            case "FCFS", "SJF", "SRTF", "PRIORITY" -> {
-            }
-            case "RR" -> {
-                if (quantum <= 0) {
-                    throw new IllegalArgumentException(
-                            "Round Robin quantum must be greater than zero.");
-                }
-            }
-            default -> throw new IllegalArgumentException(
+        if ("RR".equals(selectedAlgorithm) && quantum <= 0) {
+            throw new IllegalArgumentException(
+                    "Round Robin quantum must be greater than zero.");
+        }
+
+        if (!selectedAlgorithm.equals("FCFS")
+                && !selectedAlgorithm.equals("SJF")
+                && !selectedAlgorithm.equals("SRTF")
+                && !selectedAlgorithm.equals("PRIORITY")
+                && !selectedAlgorithm.equals("RR")) {
+            throw new IllegalArgumentException(
                     "Unknown scheduling algorithm: " + algorithm);
         }
 
@@ -48,8 +52,6 @@ public class Scheduler {
             case "SRTF" -> runShortestRemainingTimeFirst(processes);
             case "PRIORITY" -> runPriority(processes);
             case "RR" -> runRoundRobin(processes, quantum);
-            default -> throw new IllegalArgumentException(
-                    "Unknown scheduling algorithm: " + algorithm);
         }
 
         calculateSummary(processes);
@@ -74,8 +76,10 @@ public class Scheduler {
 
         for (Process process : workload) {
             if (process == null) {
-                throw new IllegalArgumentException("The workload contains a null process.");
+                throw new IllegalArgumentException(
+                        "The workload contains a null process.");
             }
+
             if (!processIds.add(process.getId())) {
                 throw new IllegalArgumentException(
                         "Duplicate process ID: " + process.getId());
@@ -86,7 +90,8 @@ public class Scheduler {
 
         copies.sort(arrivalOrder());
 
-        long horizon = 0L;
+        long horizon = 0;
+
         for (Process process : copies) {
             horizon = Math.max(horizon, process.getArrivalTime());
             horizon += process.getBurstTime();
@@ -127,16 +132,20 @@ public class Scheduler {
             }
 
             startProcess(process, currentTime);
+
             int completion = currentTime + process.getBurstTime();
+
             addSegment(process.getId(), currentTime, completion);
             process.setRemainingTime(0);
             process.setCompletionTime(completion);
+
             currentTime = completion;
         }
     }
 
     private void runShortestJobFirst(List<Process> processes) {
         List<Process> waiting = new ArrayList<>();
+
         int nextProcess = 0;
         int completed = 0;
         int currentTime = 0;
@@ -155,14 +164,17 @@ public class Scheduler {
                 continue;
             }
 
-            waiting.sort(Comparator
-                    .comparingInt(Process::getBurstTime)
-                    .thenComparing(arrivalOrder()));
+            waiting.sort(
+                    Comparator.comparingInt(Process::getBurstTime)
+                            .thenComparing(arrivalOrder())
+            );
 
             Process process = waiting.remove(0);
+
             startProcess(process, currentTime);
 
             int completion = currentTime + process.getBurstTime();
+
             addSegment(process.getId(), currentTime, completion);
             process.setRemainingTime(0);
             process.setCompletionTime(completion);
@@ -174,6 +186,7 @@ public class Scheduler {
 
     private void runPriority(List<Process> processes) {
         List<Process> waiting = new ArrayList<>();
+
         int nextProcess = 0;
         int completed = 0;
         int currentTime = 0;
@@ -192,14 +205,17 @@ public class Scheduler {
                 continue;
             }
 
-            waiting.sort(Comparator
-                    .comparingInt(Process::getPriority)
-                    .thenComparing(arrivalOrder()));
+            waiting.sort(
+                    Comparator.comparingInt(Process::getPriority)
+                            .thenComparing(arrivalOrder())
+            );
 
             Process process = waiting.remove(0);
+
             startProcess(process, currentTime);
 
             int completion = currentTime + process.getBurstTime();
+
             addSegment(process.getId(), currentTime, completion);
             process.setRemainingTime(0);
             process.setCompletionTime(completion);
@@ -219,7 +235,8 @@ public class Scheduler {
             for (Process process : processes) {
                 if (process.getArrivalTime() <= currentTime
                         && process.getRemainingTime() > 0
-                        && (selected == null || compareRemaining(process, selected) < 0)) {
+                        && (selected == null
+                        || compareRemaining(process, selected) < 0)) {
                     selected = process;
                 }
             }
@@ -230,7 +247,9 @@ public class Scheduler {
                 for (Process process : processes) {
                     if (process.getRemainingTime() > 0
                             && process.getArrivalTime() > currentTime) {
-                        nextArrival = Math.min(nextArrival, process.getArrivalTime());
+                        nextArrival = Math.min(
+                                nextArrival,
+                                process.getArrivalTime());
                     }
                 }
 
@@ -244,6 +263,7 @@ public class Scheduler {
             }
 
             addSegment(selected.getId(), currentTime, currentTime + 1);
+
             selected.decrementRemainingTime();
             currentTime++;
 
@@ -256,11 +276,13 @@ public class Scheduler {
 
     private void runRoundRobin(List<Process> processes, int quantum) {
         Deque<Process> readyQueue = new ArrayDeque<>();
+
         int nextProcess = 0;
         int completed = 0;
         int currentTime = 0;
 
         while (completed < processes.size()) {
+
             while (nextProcess < processes.size()
                     && processes.get(nextProcess).getArrivalTime() <= currentTime) {
                 readyQueue.addLast(processes.get(nextProcess));
@@ -270,6 +292,7 @@ public class Scheduler {
             if (readyQueue.isEmpty()) {
                 if (nextProcess < processes.size()) {
                     int nextArrival = processes.get(nextProcess).getArrivalTime();
+
                     addSegment("IDLE", currentTime, nextArrival);
                     currentTime = nextArrival;
                     continue;
@@ -282,8 +305,12 @@ public class Scheduler {
                 process.setStartTime(currentTime);
             }
 
-            int runTime = Math.min(quantum, process.getRemainingTime());
+            int runTime = Math.min(
+                    quantum,
+                    process.getRemainingTime());
+
             addSegment(process.getId(), currentTime, currentTime + runTime);
+
             process.reduceRemainingTime(runTime);
             currentTime += runTime;
 
@@ -303,7 +330,9 @@ public class Scheduler {
     }
 
     private int compareRemaining(Process first, Process second) {
-        int result = Integer.compare(first.getRemainingTime(), second.getRemainingTime());
+        int result = Integer.compare(
+                first.getRemainingTime(),
+                second.getRemainingTime());
 
         if (result != 0) {
             return result;
@@ -330,28 +359,40 @@ public class Scheduler {
 
         if (!ganttChart.isEmpty()) {
             String previous = ganttChart.get(ganttChart.size() - 1);
+
             int separator = previous.lastIndexOf(" [");
 
             if (separator > 0) {
                 String previousId = previous.substring(0, separator);
-                String range = previous.substring(separator + 2, previous.length() - 1);
+                String range = previous.substring(
+                        separator + 2,
+                        previous.length() - 1);
+
                 int dash = range.indexOf('-');
 
                 if (dash > 0) {
-                    int previousEnd = Integer.parseInt(range.substring(dash + 1));
+                    int previousEnd = Integer.parseInt(
+                            range.substring(dash + 1));
 
-                    if (previousId.equals(processId) && previousEnd == startTime) {
-                        int previousStart = Integer.parseInt(range.substring(0, dash));
+                    if (previousId.equals(processId)
+                            && previousEnd == startTime) {
+
+                        int previousStart = Integer.parseInt(
+                                range.substring(0, dash));
+
                         ganttChart.set(
                                 ganttChart.size() - 1,
-                                processId + " [" + previousStart + "-" + endTime + "]");
+                                processId + " [" + previousStart + "-"
+                                        + endTime + "]");
+
                         return;
                     }
                 }
             }
         }
 
-        ganttChart.add(processId + " [" + startTime + "-" + endTime + "]");
+        ganttChart.add(
+                processId + " [" + startTime + "-" + endTime + "]");
     }
 
     private void resetResults() {
@@ -367,7 +408,10 @@ public class Scheduler {
 
         for (Process process : processes) {
             busyTime += process.getBurstTime();
-            latestCompletion = Math.max(latestCompletion, process.getCompletionTime());
+
+            latestCompletion = Math.max(
+                    latestCompletion,
+                    process.getCompletionTime());
         }
 
         elapsedTime = latestCompletion;
